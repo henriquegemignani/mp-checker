@@ -78,6 +78,7 @@ setup(
         'aiofiles',
         'dulwich>=0.20',
         'py_randomprime>=0.2.0',
+        'retro-data-structures>=0.3.0',
     ],
     extras_require={
         "gui": [

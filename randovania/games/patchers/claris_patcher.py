@@ -93,6 +93,9 @@ class ClarisPatcher(Patcher):
                     "Your internal copy is missing files.\nPlease press 'Delete internal copy' and select "
                     "a clean game ISO.")
 
+        shutil.copy(internal_copies_path.joinpath("prime2", "ModdedMetroid2.pak"),
+                    internal_copies_path.joinpath("prime2", "contents", "files", "Metroid2.pak"))
+
         # Apply patcher
         banner_patcher.patch_game_name_and_id(
             contents_files_path,
