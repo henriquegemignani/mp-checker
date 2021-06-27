@@ -20,10 +20,7 @@ def _resources_in_pickup(pickup: PickupEntry, current_resources: CurrentResource
 
 
 def interesting_resources_for_reach(reach: GeneratorReach) -> FrozenSet[ResourceInfo]:
-    satisfiable_requirements: FrozenSet[RequirementList] = frozenset(itertools.chain.from_iterable(
-        requirements.alternatives
-        for requirements in reach.unreachable_nodes_with_requirements().values()
-    ))
+    satisfiable_requirements: FrozenSet[RequirementList] = frozenset(reach.unsatisfied_requirement_list())
     return game_description.calculate_interesting_resources(
         satisfiable_requirements,
         reach.state.resources,
@@ -71,7 +68,7 @@ def _unsatisfied_item_requirements_in_list(alternative: RequirementList,
 
 
 def _requirement_lists_without_satisfied_resources(state: State,
-                                                   possible_sets: List[RequirementSet],
+                                                   possible_lists: List[RequirementList],
                                                    uncollected_resources: List[ResourceInfo],
                                                    ) -> Set[RequirementList]:
     seen_lists = set()
@@ -82,15 +79,14 @@ def _requirement_lists_without_satisfied_resources(state: State,
         if items_tuple not in result:
             result.add(items_tuple)
 
-    for requirements in possible_sets:
+    for alternative in possible_lists:
         # Maybe should first recreate `requirements` by removing the satisfied items or the ones that can't be
-        for alternative in requirements.alternatives:
-            if alternative in seen_lists:
-                continue
-            seen_lists.add(alternative)
+        if alternative in seen_lists:
+            continue
+        seen_lists.add(alternative)
 
-            for items in _unsatisfied_item_requirements_in_list(alternative, state, uncollected_resources):
-                _add_items(items)
+        for items in _unsatisfied_item_requirements_in_list(alternative, state, uncollected_resources):
+            _add_items(items)
 
     if debug.debug_level() > 2:
         print(">> All requirement lists:")
@@ -140,10 +136,10 @@ def get_pickups_that_solves_unreachable(pickups_left: List[PickupEntry],
     """New logic. Given pickup list and a reach, checks the combination of pickups
     that satisfies on unreachable nodes"""
     state = reach.state
-    possible_sets = list(reach.unreachable_nodes_with_requirements().values())
+    possible_lists = list(reach.unsatisfied_requirement_list())
     uncollected_resources = [node.resource() for node in uncollected_resource_nodes]
 
-    all_lists = _requirement_lists_without_satisfied_resources(state, possible_sets, uncollected_resources)
+    all_lists = _requirement_lists_without_satisfied_resources(state, possible_lists, uncollected_resources)
 
     result = []
     for requirement_list in sorted(all_lists, key=lambda it: it.as_stable_sort_tuple):

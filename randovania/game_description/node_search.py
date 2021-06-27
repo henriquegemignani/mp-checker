@@ -1,6 +1,5 @@
 from typing import Dict, Optional
 
-import networkx
 
 from randovania.game_description.world.area import Area
 from randovania.game_description.game_patches import GamePatches
@@ -25,6 +24,7 @@ def distances_to_node(world_list: WorldList, starting_node: Node,
     :param patches:
     :return: Dict keyed by area to shortest distance to starting_node.
     """
+    import networkx
     g = networkx.DiGraph()
 
     dock_connections = patches.dock_connection if patches is not None else {}
